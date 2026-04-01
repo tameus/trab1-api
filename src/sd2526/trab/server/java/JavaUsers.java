@@ -70,28 +70,17 @@ public class JavaUsers implements Users {
     }
 
     @Override
-    public Result<User> updateUser(String userId, String password, User user) {
+    public Result<User> updateUser(String name, String password, User user) {
         return Result.error( ErrorCode.NOT_IMPLEMENTED );
     }
 
     @Override
-    public Result<User> deleteUser(String userId, String password) {
+    public Result<User> deleteUser(String name, String password) {
         return Result.error( ErrorCode.NOT_IMPLEMENTED );
     }
 
     @Override
-    public Result<List<User>> searchUsers(String pattern) {
+    public Result<List<User>> searchUsers(String name, String pwd, String query) {
         return Result.error( ErrorCode.NOT_IMPLEMENTED );
     }
-
-    @Override
-    public Result<byte[]> getUserPhoto(String name, String pwd) {
-        return Result.error( ErrorCode.NOT_IMPLEMENTED );
-    }
-
-    @Override
-    public Result<User> updateUserPhoto(String name, String pwd, byte[] photo) {
-        return Result.error( ErrorCode.NOT_IMPLEMENTED );
-    }
-
 }

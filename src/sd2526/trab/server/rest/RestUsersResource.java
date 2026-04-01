@@ -35,34 +35,20 @@ public class RestUsersResource extends RestResource implements RestUsers {
     @Override
     public User updateUser(String name, String pwd, User user) {
         Log.info("updateUser : user = " + name + "; pwd = " + pwd + " ; userData = " + user);
-        return super.unwrapResultOrThrow( impl.getUser(name, pwd));
+        return super.unwrapResultOrThrow( impl.updateUser(name, pwd, user));
     }
 
     @Override
     public User deleteUser(String name, String pwd) {
         Log.info("deleteUser : user = " + name + "; pwd = " + pwd);
 
-        return super.unwrapResultOrThrow( impl.getUser(name, pwd));
+        return super.unwrapResultOrThrow( impl.deleteUser(name, pwd));
     }
 
     @Override
-    public List<User> searchUsers(String pattern) {
-        Log.info("searchUsers : pattern = " + pattern);
+    public List<User> searchUsers(String name, String pwd, String query) {
+        Log.info("searchUsers : pattern = " + query);
 
-        return super.unwrapResultOrThrow( impl.searchUsers( pattern ));
-    }
-
-    @Override
-    public byte[] getUserPhoto(String name, String pwd) {
-        Log.info("getUserPhoto : user = " + name);
-
-        return super.unwrapResultOrThrow( impl.getUserPhoto(name, pwd));
-    }
-
-    @Override
-    public User updateUserPhoto(String name, String pwd, byte[] photo) {
-        Log.info("updateUserPhoto : user = " + name);
-
-        return super.unwrapResultOrThrow( impl.updateUserPhoto(name, pwd, photo));
+        return super.unwrapResultOrThrow( impl.searchUsers( name, pwd, query));
     }
 }
