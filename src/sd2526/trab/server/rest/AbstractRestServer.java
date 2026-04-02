@@ -25,6 +25,8 @@ public abstract class AbstractRestServer {
     final protected String service;
     final protected String serverURI;
 
+    protected Discovery discovery;
+
     protected AbstractRestServer(Logger log, String service, int port) throws UnknownHostException {
         this.Log = log;
         this.port = port;
@@ -35,6 +37,8 @@ public abstract class AbstractRestServer {
     protected void start(String domain) {
         try{
         ResourceConfig config = new ResourceConfig();
+
+        this.discovery = new Discovery(Discovery.DISCOVERY_ADDR, "%s@%s".formatted(service,domain),serverURI);
 
         registerResources( config );
 
@@ -50,7 +54,6 @@ public abstract class AbstractRestServer {
         //if(hostName.contains(".")) {
           //  domain = hostName.substring(hostName.lastIndexOf('.') + 1);
         //}
-        Discovery discovery = new Discovery(Discovery.DISCOVERY_ADDR, "%s@%s".formatted(service,domain),serverURI);
         discovery.start();
 
         Log.info(String.format("%s Server ready @ %s\n",  service, serverURI));

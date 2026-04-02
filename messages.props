@@ -1,4 +1,4 @@
-MESSAGES_REST_SERVER_MAINCLASS=sd2526.trab.server.rest.MessagesServer
+MESSAGES_REST_SERVER_MAINCLASS=sd2526.trab.server.rest.RestMessagesServer
 MESSAGES_REST_PORT=8080
 MESSAGES_REST_EXTRA_ARGS=ourorg
 USERS_REST_SERVER_MAINCLASS=sd2526.trab.server.rest.RestUsersServer
