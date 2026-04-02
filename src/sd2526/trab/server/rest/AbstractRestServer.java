@@ -32,7 +32,7 @@ public abstract class AbstractRestServer {
         this.serverURI = SERVER_BASE_URI.formatted(InetAddress.getLocalHost().getHostName(), port);
     }
 
-    protected void start() {
+    protected void start(String domain) {
         try{
         ResourceConfig config = new ResourceConfig();
 
@@ -44,12 +44,12 @@ public abstract class AbstractRestServer {
         JdkHttpServerFactory.createHttpServer( uri, config);
 
         //String domain = "mydomain"; // TODO: Replace with proper domain...
-        String hostName = InetAddress.getLocalHost().getHostName();
+        //String hostName = InetAddress.getLocalHost().getHostName();
         //para correr localmente sem domínio
-        String domain = "mydomain";
-        if(hostName.contains(".")) {
-            domain = hostName.substring(hostName.lastIndexOf('.') + 1);
-        }
+        //String domain = "mydomain";
+        //if(hostName.contains(".")) {
+          //  domain = hostName.substring(hostName.lastIndexOf('.') + 1);
+        //}
         Discovery discovery = new Discovery(Discovery.DISCOVERY_ADDR, "%s@%s".formatted(service,domain),serverURI);
         discovery.start();
 

@@ -13,17 +13,20 @@ public class RestUsersServer extends AbstractRestServer {
 
     private static Logger Log = Logger.getLogger(RestUsersServer.class.getName());
 
-    RestUsersServer() throws UnknownHostException {
-        super( Log, Users.SERVICE_NAME, PORT);
+    private final String domain;
+    RestUsersServer(String domain) throws UnknownHostException {
+        super( Logger.getLogger(RestUsersServer.class.getName()), Users.SERVICE_NAME, PORT);
+        this.domain=domain;
     }
 
     @Override
     void registerResources(ResourceConfig config) {
-        config.register(RestUsersResource.class);
+        config.register(new RestUsersResource(domain));
     }
 
     public static void main(String[] args) throws Exception{
-        new RestUsersServer().start();
+        String domain = args[0];
+        new RestUsersServer(domain).start(domain);
     }
 
 }

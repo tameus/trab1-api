@@ -14,8 +14,9 @@ public class RestUsersResource extends RestResource implements RestUsers {
 
     final Users impl;
 
-    public RestUsersResource() {
-        impl = new JavaUsers();
+
+    public RestUsersResource(String domain) {
+        this.impl = new JavaUsers(domain);
     }
 
     @Override

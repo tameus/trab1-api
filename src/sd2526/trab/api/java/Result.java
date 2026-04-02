@@ -49,7 +49,7 @@ public interface Result<T> {
 	
 	/**
 	 * Convenience method for returning non error results of the given type
-	 * @param Class of value of the result
+	 * @param result of value of the result
 	 * @return the value of the result
 	 */
 	static <T> Result<T> ok( T result ) {
