@@ -1,5 +1,6 @@
 package sd2526.trab.server.rest;
 
+import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.logging.Logger;
 
@@ -9,7 +10,7 @@ import sd2526.trab.api.java.Users;
 
 public class RestUsersServer extends AbstractRestServer {
 
-    public static final int PORT = 8080;
+    public static final int PORT = 8081;
 
     private static Logger Log = Logger.getLogger(RestUsersServer.class.getName());
 
@@ -21,11 +22,22 @@ public class RestUsersServer extends AbstractRestServer {
 
     @Override
     void registerResources(ResourceConfig config) {
-        config.register(new RestUsersResource(domain));
+        config.register(RestUsersResource.class);
+        config.register(new org.glassfish.hk2.utilities.binding.AbstractBinder() {
+            @Override
+            protected void configure() {
+                bind(domain).to(String.class).named("domain");
+            }
+        });
     }
 
     public static void main(String[] args) throws Exception{
-        String domain = args[0];
+        String domain ="mydomain"; //default
+        String hostName = InetAddress.getLocalHost().getHostName();
+        if(hostName.contains(".")){
+            domain = hostName.substring(hostName.indexOf('.')+1);
+        }
+
         new RestUsersServer(domain).start(domain);
     }
 
