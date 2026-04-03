@@ -35,31 +35,27 @@ public class JavaUsers implements Users {
             return Result.error(ErrorCode.BAD_REQUEST);
         }
 
-        if(this.domain==null || !user.getDomain().equalsIgnoreCase(this.domain)){
+        if(!user.getDomain().equalsIgnoreCase(this.domain)){
             return Result.error(ErrorCode.FORBIDDEN);
         }
 
-        //idempotencia
         User exiUser = hibernate.get(User.class,user.getName());
-
-            if(exiUser!=null){
-                if(exiUser.getPwd().equals(user.getPwd()) &&
-                        exiUser.getDisplayName().equals(user.getDisplayName()))
-                {return Result.ok();
-                }else{
-                    return Result.error(ErrorCode.CONFLICT);
-                }
+        if(exiUser!=null){
+            if(exiUser.equals(user)) {
+                return Result.ok(user.getName()+"@"+user.getDomain());
+            }else{
+                Log.info("User already exists with different data.");
+                return Result.error(ErrorCode.CONFLICT);
             }
+        }
 
         try {
             hibernate.persist(user);
-            return Result.ok(user.getName()+"@"+user.getDomain());
         } catch (Exception e) {
-            e.printStackTrace(); //Most likely the exception is due to the user already existing...
-            Log.info("User already exists.");
+            Log.info("DB error.");
             return Result.error(ErrorCode.CONFLICT);
         }
-
+        return Result.ok(user.getName()+"@"+user.getDomain());
     }
 
     @Override
@@ -102,9 +98,11 @@ public class JavaUsers implements Users {
        User user = res.value();
 
        if(info.getName() != null && !info.getName().equals(user.getName())){
+           Log.info("Attempted to change name.");
            return Result.error(ErrorCode.BAD_REQUEST);
        }
         if(info.getDomain() != null && !info.getDomain().equals(user.getDomain())){
+            Log.info("Attempted to change domain.");
             return Result.error(ErrorCode.BAD_REQUEST);
         }
 
@@ -114,11 +112,10 @@ public class JavaUsers implements Users {
 
         try{
             hibernate.update(user);
-            return Result.ok(user);
-
         }catch (Exception e){
             return Result.error(ErrorCode.INTERNAL_ERROR);
         }
+        return Result.ok(user);
     }
 
     @Override
@@ -148,16 +145,19 @@ public class JavaUsers implements Users {
 
     @Override
     public Result<List<User>> searchUsers(String name, String pwd, String query) {
+
+        if (query == null) {
+            return Result.error(ErrorCode.BAD_REQUEST);
+        }
+
         var res = getUser(name,pwd);
         if(!res.isOK()) return Result.error(res.error());
 
         try{
             List<User> users = hibernate.jpql(USER_TABLE_SELECT,User.class);
 
-            String qry = "";
-            if(query != null) {
-                qry = query.toLowerCase();
-            }
+            String qry = query.toLowerCase();
+
             //String qry = (query  == null) ? "" : query.toLowerCase();
 
             List<User> userHits = new ArrayList<>();

@@ -31,7 +31,7 @@ public abstract class AbstractRestServer {
         this.Log = log;
         this.port = port;
         this.service = service;
-        this.serverURI = SERVER_BASE_URI.formatted(InetAddress.getLocalHost().getHostName(), port);
+        this.serverURI = SERVER_BASE_URI.formatted(InetAddress.getLocalHost().getHostAddress(), port);
     }
 
     protected void start(String domain) {
