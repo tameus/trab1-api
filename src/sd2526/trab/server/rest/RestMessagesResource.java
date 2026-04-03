@@ -1,5 +1,8 @@
 package sd2526.trab.server.rest;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import sd2526.trab.Discovery;
 import sd2526.trab.api.Message;
 import sd2526.trab.api.java.Messages;
@@ -8,14 +11,14 @@ import sd2526.trab.server.java.JavaMessages;
 
 import java.util.List;
 import java.util.logging.Logger;
-
+@Singleton
 public class RestMessagesResource extends RestResource implements RestMessages {
 
     final Messages impl;
-    private static Logger Log = Logger.getLogger(RestMessagesResource.class.getName());
 
-
-    public RestMessagesResource(String domain, Discovery discovery){
+    @Inject
+    public RestMessagesResource(@Named("domain") String domain, Discovery discovery){
+        super(domain, Logger.getLogger(RestMessagesResource.class.getName()));
         this.impl = new JavaMessages(domain,discovery);
     }
     @Override

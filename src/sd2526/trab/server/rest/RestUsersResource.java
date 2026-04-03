@@ -6,27 +6,20 @@ import java.util.logging.Logger;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
-import jakarta.ws.rs.Path;
 import sd2526.trab.api.User;
 import sd2526.trab.api.java.Users;
 import sd2526.trab.api.rest.RestUsers;
 import sd2526.trab.server.java.JavaUsers;
 @Singleton
-@Path(RestUsers.PATH)
 public class RestUsersResource extends RestResource implements RestUsers {
-
-    private static Logger Log = Logger.getLogger(RestUsersResource.class.getName());
 
     final Users impl;
 
     @Inject
     public RestUsersResource(@Named("domain") String domain) {
+        super(domain, Logger.getLogger(RestUsersResource.class.getName()));
         this.impl = new JavaUsers(domain);
     }
-
-    /*public RestUsersResource(String domain) {
-        this.impl = new JavaUsers(domain);
-    }*/
 
     @Override
     public String postUser(User user) {

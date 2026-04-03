@@ -5,6 +5,7 @@ import java.net.URI;
 import java.net.UnknownHostException;
 import java.util.logging.Logger;
 
+import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.jdkhttp.JdkHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
 
@@ -24,39 +25,55 @@ public abstract class AbstractRestServer {
     final protected Logger Log;
     final protected String service;
     final protected String serverURI;
+    final protected String domain;
 
     protected Discovery discovery;
 
-    protected AbstractRestServer(Logger log, String service, int port) throws UnknownHostException {
-        this.Log = log;
+    protected AbstractRestServer(String service, int port, String domain) throws UnknownHostException {
         this.port = port;
         this.service = service;
+        this.domain = domain;
+        this.Log = Logger.getLogger(this.getClass().getName());
         this.serverURI = SERVER_BASE_URI.formatted(InetAddress.getLocalHost().getHostAddress(), port);
     }
 
-    protected void start(String domain) {
+    protected static String getDomainFromHostname(){
+        String domain ="mydomain"; //default
         try{
-        ResourceConfig config = new ResourceConfig();
+            String hostName = InetAddress.getLocalHost().getHostName();
+            if(hostName.contains(".")){
+                domain = hostName.substring(hostName.indexOf('.')+1);
+            }
+        }catch (UnknownHostException e){
+            e.printStackTrace();
+        }
+        return domain;
+    }
 
-        this.discovery = new Discovery(Discovery.DISCOVERY_ADDR, "%s@%s".formatted(service,domain),serverURI);
+    protected void start() {
+        try{
+            ResourceConfig config = new ResourceConfig();
+            //binder para passar o domain
+            config.register(new AbstractBinder() {
+                @Override
+                protected void configure() {
+                    bind(domain).to(String.class).named("domain");
+                    bind(discovery).to(Discovery.class);
+                }
+            });
 
-        registerResources( config );
+            this.discovery = new Discovery(Discovery.DISCOVERY_ADDR, "%s@%s".formatted(service,domain),serverURI);
 
-        var uri = URI.create("http://0.0.0.0:%s/rest".formatted(port));
-        System.out.println( uri );
+            registerResources( config );
 
-        JdkHttpServerFactory.createHttpServer( uri, config);
+            var uri = URI.create("http://0.0.0.0:%s/rest".formatted(port));
+            System.out.println( uri );
+            JdkHttpServerFactory.createHttpServer( uri, config);
 
-        //String domain = "mydomain"; // TODO: Replace with proper domain...
-        //String hostName = InetAddress.getLocalHost().getHostName();
-        //para correr localmente sem domínio
-        //String domain = "mydomain";
-        //if(hostName.contains(".")) {
-          //  domain = hostName.substring(hostName.lastIndexOf('.') + 1);
-        //}
-        discovery.start();
+            discovery.start();
 
-        Log.info(String.format("%s Server ready @ %s\n",  service, serverURI));
+            Log.info(String.format("%s Server ready @ %s\n",  service, serverURI));
+
         }catch (Exception e){
             e.printStackTrace();
         }

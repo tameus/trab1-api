@@ -4,7 +4,16 @@ import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response.Status;
 import sd2526.trab.api.java.Result;
 
+import java.util.logging.Logger;
+
 public class RestResource {
+    protected final String domain;
+    protected final Logger Log;
+
+    protected RestResource(String domain, Logger log) {
+        this.domain = domain;
+        this.Log = log;
+    }
 
     private static Status errorCodeToStatus( Result.ErrorCode error ) {
         Status status =  switch( error) {
@@ -26,4 +35,13 @@ public class RestResource {
         else
             throw new WebApplicationException( errorCodeToStatus( result.error() ) );
     }
+
+
+    /*//verificar se é do dominio
+    faz mais sentido aqui ou nos metodos do java??
+    protected void verifyDomain(String userId) {
+        if (!userId.endsWith("@" + domain)) {
+            throw new WebApplicationException(Status.FORBIDDEN);
+        }
+    }*/
 }
