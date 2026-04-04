@@ -39,7 +39,7 @@ public class RestMessagesResource extends RestResource implements RestMessages {
     @Override
     public List<String> getMessages(String name, String pwd, String query) {
 
-        if (query == null){
+        if (query == null || query.isBlank()){
             return super.unwrapResultOrThrow( impl.getAllInboxMessages(name, pwd));
         } else{
             return super.unwrapResultOrThrow( impl.searchInbox(name, pwd,query));
