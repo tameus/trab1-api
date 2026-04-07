@@ -9,10 +9,8 @@ import sd2526.trab.api.java.Result;
 import sd2526.trab.clients.java.Clients;
 import sd2526.trab.server.persistence.Hibernate;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
@@ -274,10 +272,7 @@ public class JavaMessages implements Messages {
             return Result.error(res.error());
         }
         try {
-            String sql = String.format(
-                    SEARCH_INBOX,
-                    name, query, query
-            );
+            String sql = String.format(SEARCH_INBOX, name, query, query);
             return Result.ok(hibernate.jpql(sql, String.class));
         } catch (Exception e) {
             return Result.error(Result.ErrorCode.INTERNAL_ERROR);
@@ -388,6 +383,8 @@ public class JavaMessages implements Messages {
     }
 
     private void notificationDelivery(Message msg, String dest, String subject){
+        Log.info("entrei na notificationDelivery " + msg.getId());
+
         String [] parsed = parseSender(msg.getSender());
         String senderName = parsed[0];
         String senderDomain = parsed[1];
@@ -404,6 +401,8 @@ public class JavaMessages implements Messages {
         notification.setSubject(String.format(subject, msg.getId(), dest));
         notification.setContents(msg.getContents());
         notification.setCreationTime(System.currentTimeMillis());
+        Log.info("Prestes a entrar na thread: " + notification.getId());
+
         try {
             Log.info("A gravar Timeout Notif na DB local: " + notification.getId());
             hibernate.persist(notification);
@@ -420,13 +419,36 @@ public class JavaMessages implements Messages {
     }
 
     private void remoteDelivery(String destDomain, String pwd, Message msg) {
-        executeWithRetry(destDomain, () -> {
+        new Thread(()->{
+            long startTime = System.currentTimeMillis();
+            boolean success = false;
             Messages messagesClient = Clients.MessagesClient.get(destDomain, this.discovery);
-            messagesClient.postMessage(pwd, msg);
-        }, () -> generateTimeoutNotification(destDomain, msg));
+            while(!success &&(System.currentTimeMillis()-startTime)<MAX_TIMEOUT) {
+                try{
+                    messagesClient.postMessage(pwd, msg);
+                    success = true;
+                }catch(Exception e){
+                    try { Thread.sleep(RETRY_DELAY); } catch (InterruptedException ignored) {}
+                }
+            }
+            if(!success){
+                Log.warning("Gave up sending to " + destDomain + " after 90s.");
+                String destUser = "";
+                for(String d : msg.getDestination()) {
+                    if(d.endsWith(destDomain)){
+                        destUser = d;
+                        break;
+                    }
+                }
+                if(!destUser.isEmpty()){
+                    notificationDelivery(msg, destUser, TIMEOUT);
+                }
+            }
+
+        }).start();
     }
 
-    private void generateTimeoutNotification(String destDomain, Message msg) {
+    /*private void generateTimeoutNotification(String destDomain, Message msg) {
         Log.warning("Gave up sending to " + destDomain + " after 90s.");
         String destUser = "";
         for(String d : msg.getDestination()) {
@@ -438,7 +460,7 @@ public class JavaMessages implements Messages {
         if(!destUser.isEmpty()){
             notificationDelivery(msg, destUser, TIMEOUT);
         }
-    }
+    }*/
 
     private Message fetchMessage(String mid) {
         String msgQuery = String.format(SELECT_MESSAGE, mid);
@@ -467,40 +489,54 @@ public class JavaMessages implements Messages {
             }
         }
         for(String remoteDomain : remoteDomains){
-            executeWithRetry(remoteDomain,()->{
+            new Thread(()->{
+                long startTime = System.currentTimeMillis();
+                boolean success = false;
                 Messages messagesClient = Clients.MessagesClient.get(remoteDomain, this.discovery);
-                messagesClient.internalDeleteMessage(mid);
-            }, null);
+                while(!success &&(System.currentTimeMillis()-startTime)<MAX_TIMEOUT) {
+                    try{
+                        messagesClient.internalDeleteMessage(mid);
+                        success = true;
+                    }catch(Exception e){
+                        try { Thread.sleep(RETRY_DELAY); } catch (InterruptedException ignored) {}
+                    }
+                }
+            }).start();
         }
     }
 
-    private interface RemoteAction {
+    /*private interface RemoteAction {
         void execute() throws Exception;
     }
     private void executeWithRetry(String destDomain, RemoteAction action, Runnable onTimeout) {
+        Timer timer = new Timer(true);
+        AtomicBoolean success = new AtomicBoolean(false);
+        AtomicBoolean timeIsUp = new AtomicBoolean(false);
+
+        timer.schedule(new TimerTask(){
+            @Override
+            public void run() {
+                timeIsUp.set(true);
+                if(!success.get() && onTimeout != null){
+                    onTimeout.run();
+                }
+            }
+        }, MAX_TIMEOUT);
+
         new Thread(() -> {
-            AtomicBoolean success = new AtomicBoolean(false);
-            long startTime = System.currentTimeMillis();
-            Thread worker = new Thread(() -> {
-                while (!success && (System.currentTimeMillis() - startTime) < MAX_TIMEOUT) {
+            while (!success.get() && !timeIsUp.get()){
                 try {
-                    action.execute(); // Tenta executar a ação que lhe passarem!
-                    success = true;
+                    action.execute();
+                    success.set(true);
+                    timer.cancel();
                 } catch (Exception e) {
-                    try { Thread.sleep(Math.min(RETRY_DELAY,timeLeft)); } catch (InterruptedException ignored) {}
-
-                });}
-
-                    long timeLeft = MAX_TIMEOUT - (System.currentTimeMillis() - startTime);
-                    if (timeLeft > 0) {
-                        }
-
-
-            // Se falhou após 90s e houver uma ação de timeout definida, executa-a!
-            if (!success && onTimeout != null) {
-                onTimeout.run();
+                    if(!timeIsUp.get()){
+                        try { Thread.sleep(RETRY_DELAY); } catch (InterruptedException ignored) {}
+                    }
+                }
             }
         }).start();
-    }
+
+    }*/
 
 }
