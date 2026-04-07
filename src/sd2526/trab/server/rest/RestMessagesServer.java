@@ -12,7 +12,7 @@ public class RestMessagesServer extends AbstractRestServer{
     }
 
     @Override
-    void registerResources(ResourceConfig config) {
+    public void registerResources(ResourceConfig config) {
         config.register(RestMessagesResource.class);
 
     }

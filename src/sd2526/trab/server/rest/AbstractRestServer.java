@@ -79,5 +79,5 @@ public abstract class AbstractRestServer {
         }
     }
 
-    abstract void registerResources( ResourceConfig config );
+    public abstract void registerResources(ResourceConfig config);
 }

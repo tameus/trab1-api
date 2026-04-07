@@ -95,11 +95,11 @@ public class JavaUsers implements Users {
 
        User user = res.value();
 
-       if(info.getName() != null && !info.getName().equals(user.getName())){
+       if(info.getName() != null && !info.getName().isEmpty() &&!info.getName().equals(user.getName())){
            Log.info("Attempted to change name.");
            return Result.error(ErrorCode.BAD_REQUEST);
        }
-        if(info.getDomain() != null && !info.getDomain().equals(user.getDomain())){
+        if(info.getDomain() != null && !info.getDomain().isEmpty()&&!info.getDomain().equals(user.getDomain())){
             Log.info("Attempted to change domain.");
             return Result.error(ErrorCode.BAD_REQUEST);
         }
@@ -107,11 +107,11 @@ public class JavaUsers implements Users {
         //se algum valor do info == null, n se altera
         //se é igual nao é preciso alterar
         boolean needsUpdate = false;
-        if(info.getPwd()!=null && !info.getPwd().equals(user.getPwd())){
+        if(info.getPwd()!=null && !info.getPwd().isEmpty() &&!info.getPwd().equals(user.getPwd())){
             user.setPwd(info.getPwd());
             needsUpdate = true;
         }
-        if(info.getDisplayName()!=null && !info.getDisplayName().equals(user.getDisplayName())){
+        if(info.getDisplayName()!=null && !info.getDisplayName().isEmpty() && !info.getDisplayName().equals(user.getDisplayName())){
             user.setDisplayName(info.getDisplayName());
             needsUpdate = true;
         }
