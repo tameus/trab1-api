@@ -10,6 +10,7 @@ service GrpcUsers {
 	rpc UpdateUser(UpdateUserArgs) returns (UpdateUserResult);
 	rpc DeleteUser(DeleteUserArgs) returns (DeleteUserResult);
 	rpc SearchUsers(SearchUsersArgs) returns (stream GrpcUser);
+	rpc VerifyUser(VerifyUserArgs) returns (GrpcUser);
 }
 
 message GrpcUser {
@@ -55,4 +56,8 @@ message SearchUsersArgs {
 	string name = 1;
 	string pwd = 2;
 	string query = 3;
+}
+
+message VerifyUserArgs {
+	string name = 1;
 }

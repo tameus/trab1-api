@@ -10,7 +10,6 @@ import sd2526.trab.clients.java.Clients;
 import sd2526.trab.server.persistence.Hibernate;
 
 import java.util.*;
-import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 

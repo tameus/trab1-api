@@ -167,6 +167,37 @@ public final class GrpcUsersGrpc {
     return getSearchUsersMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<sd2526.trab.api.grpc.Users.VerifyUserArgs,
+      sd2526.trab.api.grpc.Users.GrpcUser> getVerifyUserMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "VerifyUser",
+      requestType = sd2526.trab.api.grpc.Users.VerifyUserArgs.class,
+      responseType = sd2526.trab.api.grpc.Users.GrpcUser.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<sd2526.trab.api.grpc.Users.VerifyUserArgs,
+      sd2526.trab.api.grpc.Users.GrpcUser> getVerifyUserMethod() {
+    io.grpc.MethodDescriptor<sd2526.trab.api.grpc.Users.VerifyUserArgs, sd2526.trab.api.grpc.Users.GrpcUser> getVerifyUserMethod;
+    if ((getVerifyUserMethod = GrpcUsersGrpc.getVerifyUserMethod) == null) {
+      synchronized (GrpcUsersGrpc.class) {
+        if ((getVerifyUserMethod = GrpcUsersGrpc.getVerifyUserMethod) == null) {
+          GrpcUsersGrpc.getVerifyUserMethod = getVerifyUserMethod =
+              io.grpc.MethodDescriptor.<sd2526.trab.api.grpc.Users.VerifyUserArgs, sd2526.trab.api.grpc.Users.GrpcUser>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "VerifyUser"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  sd2526.trab.api.grpc.Users.VerifyUserArgs.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  sd2526.trab.api.grpc.Users.GrpcUser.getDefaultInstance()))
+              .setSchemaDescriptor(new GrpcUsersMethodDescriptorSupplier("VerifyUser"))
+              .build();
+        }
+      }
+    }
+    return getVerifyUserMethod;
+  }
+
   /**
    * Creates a new async stub that supports all call types for the service
    */
@@ -264,6 +295,13 @@ public final class GrpcUsersGrpc {
         io.grpc.stub.StreamObserver<sd2526.trab.api.grpc.Users.GrpcUser> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getSearchUsersMethod(), responseObserver);
     }
+
+    /**
+     */
+    default void verifyUser(sd2526.trab.api.grpc.Users.VerifyUserArgs request,
+        io.grpc.stub.StreamObserver<sd2526.trab.api.grpc.Users.GrpcUser> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getVerifyUserMethod(), responseObserver);
+    }
   }
 
   /**
@@ -332,6 +370,14 @@ public final class GrpcUsersGrpc {
       io.grpc.stub.ClientCalls.asyncServerStreamingCall(
           getChannel().newCall(getSearchUsersMethod(), getCallOptions()), request, responseObserver);
     }
+
+    /**
+     */
+    public void verifyUser(sd2526.trab.api.grpc.Users.VerifyUserArgs request,
+        io.grpc.stub.StreamObserver<sd2526.trab.api.grpc.Users.GrpcUser> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getVerifyUserMethod(), getCallOptions()), request, responseObserver);
+    }
   }
 
   /**
@@ -386,6 +432,13 @@ public final class GrpcUsersGrpc {
       return io.grpc.stub.ClientCalls.blockingV2ServerStreamingCall(
           getChannel(), getSearchUsersMethod(), getCallOptions(), request);
     }
+
+    /**
+     */
+    public sd2526.trab.api.grpc.Users.GrpcUser verifyUser(sd2526.trab.api.grpc.Users.VerifyUserArgs request) throws io.grpc.StatusException {
+      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
+          getChannel(), getVerifyUserMethod(), getCallOptions(), request);
+    }
   }
 
   /**
@@ -439,6 +492,13 @@ public final class GrpcUsersGrpc {
       return io.grpc.stub.ClientCalls.blockingServerStreamingCall(
           getChannel(), getSearchUsersMethod(), getCallOptions(), request);
     }
+
+    /**
+     */
+    public sd2526.trab.api.grpc.Users.GrpcUser verifyUser(sd2526.trab.api.grpc.Users.VerifyUserArgs request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getVerifyUserMethod(), getCallOptions(), request);
+    }
   }
 
   /**
@@ -488,6 +548,14 @@ public final class GrpcUsersGrpc {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
           getChannel().newCall(getDeleteUserMethod(), getCallOptions()), request);
     }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<sd2526.trab.api.grpc.Users.GrpcUser> verifyUser(
+        sd2526.trab.api.grpc.Users.VerifyUserArgs request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getVerifyUserMethod(), getCallOptions()), request);
+    }
   }
 
   private static final int METHODID_POST_USER = 0;
@@ -495,6 +563,7 @@ public final class GrpcUsersGrpc {
   private static final int METHODID_UPDATE_USER = 2;
   private static final int METHODID_DELETE_USER = 3;
   private static final int METHODID_SEARCH_USERS = 4;
+  private static final int METHODID_VERIFY_USER = 5;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -531,6 +600,10 @@ public final class GrpcUsersGrpc {
           break;
         case METHODID_SEARCH_USERS:
           serviceImpl.searchUsers((sd2526.trab.api.grpc.Users.SearchUsersArgs) request,
+              (io.grpc.stub.StreamObserver<sd2526.trab.api.grpc.Users.GrpcUser>) responseObserver);
+          break;
+        case METHODID_VERIFY_USER:
+          serviceImpl.verifyUser((sd2526.trab.api.grpc.Users.VerifyUserArgs) request,
               (io.grpc.stub.StreamObserver<sd2526.trab.api.grpc.Users.GrpcUser>) responseObserver);
           break;
         default:
@@ -586,6 +659,13 @@ public final class GrpcUsersGrpc {
               sd2526.trab.api.grpc.Users.SearchUsersArgs,
               sd2526.trab.api.grpc.Users.GrpcUser>(
                 service, METHODID_SEARCH_USERS)))
+        .addMethod(
+          getVerifyUserMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              sd2526.trab.api.grpc.Users.VerifyUserArgs,
+              sd2526.trab.api.grpc.Users.GrpcUser>(
+                service, METHODID_VERIFY_USER)))
         .build();
   }
 
@@ -639,6 +719,7 @@ public final class GrpcUsersGrpc {
               .addMethod(getUpdateUserMethod())
               .addMethod(getDeleteUserMethod())
               .addMethod(getSearchUsersMethod())
+              .addMethod(getVerifyUserMethod())
               .build();
         }
       }

@@ -8148,6 +8148,576 @@ public final class Messages {
 
   }
 
+  public interface InternalDeleteMessageArgsOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:sd2526.trab.api.grpc.InternalDeleteMessageArgs)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string mid = 1;</code>
+     * @return The mid.
+     */
+    java.lang.String getMid();
+    /**
+     * <code>string mid = 1;</code>
+     * @return The bytes for mid.
+     */
+    com.google.protobuf.ByteString
+        getMidBytes();
+  }
+  /**
+   * Protobuf type {@code sd2526.trab.api.grpc.InternalDeleteMessageArgs}
+   */
+  public static final class InternalDeleteMessageArgs extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:sd2526.trab.api.grpc.InternalDeleteMessageArgs)
+      InternalDeleteMessageArgsOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use InternalDeleteMessageArgs.newBuilder() to construct.
+    private InternalDeleteMessageArgs(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private InternalDeleteMessageArgs() {
+      mid_ = "";
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new InternalDeleteMessageArgs();
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private InternalDeleteMessageArgs(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            case 10: {
+              java.lang.String s = input.readStringRequireUtf8();
+
+              mid_ = s;
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (com.google.protobuf.UninitializedMessageException e) {
+        throw e.asInvalidProtocolBufferException().setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return sd2526.trab.api.grpc.Messages.internal_static_sd2526_trab_api_grpc_InternalDeleteMessageArgs_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return sd2526.trab.api.grpc.Messages.internal_static_sd2526_trab_api_grpc_InternalDeleteMessageArgs_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              sd2526.trab.api.grpc.Messages.InternalDeleteMessageArgs.class, sd2526.trab.api.grpc.Messages.InternalDeleteMessageArgs.Builder.class);
+    }
+
+    public static final int MID_FIELD_NUMBER = 1;
+    private volatile java.lang.Object mid_;
+    /**
+     * <code>string mid = 1;</code>
+     * @return The mid.
+     */
+    @java.lang.Override
+    public java.lang.String getMid() {
+      java.lang.Object ref = mid_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        mid_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string mid = 1;</code>
+     * @return The bytes for mid.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getMidBytes() {
+      java.lang.Object ref = mid_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        mid_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(mid_)) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 1, mid_);
+      }
+      unknownFields.writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(mid_)) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, mid_);
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof sd2526.trab.api.grpc.Messages.InternalDeleteMessageArgs)) {
+        return super.equals(obj);
+      }
+      sd2526.trab.api.grpc.Messages.InternalDeleteMessageArgs other = (sd2526.trab.api.grpc.Messages.InternalDeleteMessageArgs) obj;
+
+      if (!getMid()
+          .equals(other.getMid())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + MID_FIELD_NUMBER;
+      hash = (53 * hash) + getMid().hashCode();
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static sd2526.trab.api.grpc.Messages.InternalDeleteMessageArgs parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static sd2526.trab.api.grpc.Messages.InternalDeleteMessageArgs parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static sd2526.trab.api.grpc.Messages.InternalDeleteMessageArgs parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static sd2526.trab.api.grpc.Messages.InternalDeleteMessageArgs parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static sd2526.trab.api.grpc.Messages.InternalDeleteMessageArgs parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static sd2526.trab.api.grpc.Messages.InternalDeleteMessageArgs parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static sd2526.trab.api.grpc.Messages.InternalDeleteMessageArgs parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static sd2526.trab.api.grpc.Messages.InternalDeleteMessageArgs parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static sd2526.trab.api.grpc.Messages.InternalDeleteMessageArgs parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static sd2526.trab.api.grpc.Messages.InternalDeleteMessageArgs parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static sd2526.trab.api.grpc.Messages.InternalDeleteMessageArgs parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static sd2526.trab.api.grpc.Messages.InternalDeleteMessageArgs parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(sd2526.trab.api.grpc.Messages.InternalDeleteMessageArgs prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code sd2526.trab.api.grpc.InternalDeleteMessageArgs}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:sd2526.trab.api.grpc.InternalDeleteMessageArgs)
+        sd2526.trab.api.grpc.Messages.InternalDeleteMessageArgsOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return sd2526.trab.api.grpc.Messages.internal_static_sd2526_trab_api_grpc_InternalDeleteMessageArgs_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return sd2526.trab.api.grpc.Messages.internal_static_sd2526_trab_api_grpc_InternalDeleteMessageArgs_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                sd2526.trab.api.grpc.Messages.InternalDeleteMessageArgs.class, sd2526.trab.api.grpc.Messages.InternalDeleteMessageArgs.Builder.class);
+      }
+
+      // Construct using sd2526.trab.api.grpc.Messages.InternalDeleteMessageArgs.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        mid_ = "";
+
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return sd2526.trab.api.grpc.Messages.internal_static_sd2526_trab_api_grpc_InternalDeleteMessageArgs_descriptor;
+      }
+
+      @java.lang.Override
+      public sd2526.trab.api.grpc.Messages.InternalDeleteMessageArgs getDefaultInstanceForType() {
+        return sd2526.trab.api.grpc.Messages.InternalDeleteMessageArgs.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public sd2526.trab.api.grpc.Messages.InternalDeleteMessageArgs build() {
+        sd2526.trab.api.grpc.Messages.InternalDeleteMessageArgs result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public sd2526.trab.api.grpc.Messages.InternalDeleteMessageArgs buildPartial() {
+        sd2526.trab.api.grpc.Messages.InternalDeleteMessageArgs result = new sd2526.trab.api.grpc.Messages.InternalDeleteMessageArgs(this);
+        result.mid_ = mid_;
+        onBuilt();
+        return result;
+      }
+
+      @java.lang.Override
+      public Builder clone() {
+        return super.clone();
+      }
+      @java.lang.Override
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return super.setField(field, value);
+      }
+      @java.lang.Override
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return super.clearField(field);
+      }
+      @java.lang.Override
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return super.clearOneof(oneof);
+      }
+      @java.lang.Override
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return super.setRepeatedField(field, index, value);
+      }
+      @java.lang.Override
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return super.addRepeatedField(field, value);
+      }
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof sd2526.trab.api.grpc.Messages.InternalDeleteMessageArgs) {
+          return mergeFrom((sd2526.trab.api.grpc.Messages.InternalDeleteMessageArgs)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(sd2526.trab.api.grpc.Messages.InternalDeleteMessageArgs other) {
+        if (other == sd2526.trab.api.grpc.Messages.InternalDeleteMessageArgs.getDefaultInstance()) return this;
+        if (!other.getMid().isEmpty()) {
+          mid_ = other.mid_;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        sd2526.trab.api.grpc.Messages.InternalDeleteMessageArgs parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (sd2526.trab.api.grpc.Messages.InternalDeleteMessageArgs) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+
+      private java.lang.Object mid_ = "";
+      /**
+       * <code>string mid = 1;</code>
+       * @return The mid.
+       */
+      public java.lang.String getMid() {
+        java.lang.Object ref = mid_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          mid_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string mid = 1;</code>
+       * @return The bytes for mid.
+       */
+      public com.google.protobuf.ByteString
+          getMidBytes() {
+        java.lang.Object ref = mid_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          mid_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string mid = 1;</code>
+       * @param value The mid to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMid(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  
+        mid_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string mid = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMid() {
+        
+        mid_ = getDefaultInstance().getMid();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string mid = 1;</code>
+       * @param value The bytes for mid to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMidBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  checkByteStringIsUtf8(value);
+        
+        mid_ = value;
+        onChanged();
+        return this;
+      }
+      @java.lang.Override
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      @java.lang.Override
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:sd2526.trab.api.grpc.InternalDeleteMessageArgs)
+    }
+
+    // @@protoc_insertion_point(class_scope:sd2526.trab.api.grpc.InternalDeleteMessageArgs)
+    private static final sd2526.trab.api.grpc.Messages.InternalDeleteMessageArgs DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new sd2526.trab.api.grpc.Messages.InternalDeleteMessageArgs();
+    }
+
+    public static sd2526.trab.api.grpc.Messages.InternalDeleteMessageArgs getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<InternalDeleteMessageArgs>
+        PARSER = new com.google.protobuf.AbstractParser<InternalDeleteMessageArgs>() {
+      @java.lang.Override
+      public InternalDeleteMessageArgs parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new InternalDeleteMessageArgs(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<InternalDeleteMessageArgs> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<InternalDeleteMessageArgs> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public sd2526.trab.api.grpc.Messages.InternalDeleteMessageArgs getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_sd2526_trab_api_grpc_GrpcMessage_descriptor;
   private static final 
@@ -8198,6 +8768,11 @@ public final class Messages {
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_sd2526_trab_api_grpc_SearchInboxResult_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_sd2526_trab_api_grpc_InternalDeleteMessageArgs_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_sd2526_trab_api_grpc_InternalDeleteMessageArgs_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -8224,23 +8799,27 @@ public final class Messages {
       "\021DeleteMessageArgs\022\014\n\004name\030\001 \001(\t\022\013\n\003mid\030" +
       "\002 \001(\t\022\013\n\003pwd\030\003 \001(\t\";\n\017SearchInboxArgs\022\014\n" +
       "\004name\030\001 \001(\t\022\013\n\003pwd\030\002 \001(\t\022\r\n\005query\030\003 \001(\t\"" +
-      "!\n\021SearchInboxResult\022\014\n\004mids\030\001 \003(\t2\322\004\n\014G" +
-      "rpcMessages\022]\n\013PostMessage\022%.sd2526.trab" +
-      ".api.grpc.PostMessageArgs\032\'.sd2526.trab." +
-      "api.grpc.PostMessageResult\022_\n\017GetInboxMe" +
-      "ssage\022).sd2526.trab.api.grpc.GetInboxMes" +
-      "sageArgs\032!.sd2526.trab.api.grpc.GrpcMess" +
-      "age\022u\n\023GetAllInboxMessages\022-.sd2526.trab" +
-      ".api.grpc.GetAllInboxMessagesArgs\032/.sd25" +
-      "26.trab.api.grpc.GetAllInboxMessagesResu" +
-      "lt\022Z\n\022RemoveInboxMessage\022,.sd2526.trab.a" +
-      "pi.grpc.RemoveInboxMessageArgs\032\026.google." +
-      "protobuf.Empty\022P\n\rDeleteMessage\022\'.sd2526" +
-      ".trab.api.grpc.DeleteMessageArgs\032\026.googl" +
-      "e.protobuf.Empty\022]\n\013SearchInbox\022%.sd2526" +
-      ".trab.api.grpc.SearchInboxArgs\032\'.sd2526." +
-      "trab.api.grpc.SearchInboxResultB\026\n\024sd252" +
-      "6.trab.api.grpcb\006proto3"
+      "!\n\021SearchInboxResult\022\014\n\004mids\030\001 \003(\t\"(\n\031In" +
+      "ternalDeleteMessageArgs\022\013\n\003mid\030\001 \001(\t2\264\005\n" +
+      "\014GrpcMessages\022]\n\013PostMessage\022%.sd2526.tr" +
+      "ab.api.grpc.PostMessageArgs\032\'.sd2526.tra" +
+      "b.api.grpc.PostMessageResult\022_\n\017GetInbox" +
+      "Message\022).sd2526.trab.api.grpc.GetInboxM" +
+      "essageArgs\032!.sd2526.trab.api.grpc.GrpcMe" +
+      "ssage\022u\n\023GetAllInboxMessages\022-.sd2526.tr" +
+      "ab.api.grpc.GetAllInboxMessagesArgs\032/.sd" +
+      "2526.trab.api.grpc.GetAllInboxMessagesRe" +
+      "sult\022Z\n\022RemoveInboxMessage\022,.sd2526.trab" +
+      ".api.grpc.RemoveInboxMessageArgs\032\026.googl" +
+      "e.protobuf.Empty\022P\n\rDeleteMessage\022\'.sd25" +
+      "26.trab.api.grpc.DeleteMessageArgs\032\026.goo" +
+      "gle.protobuf.Empty\022]\n\013SearchInbox\022%.sd25" +
+      "26.trab.api.grpc.SearchInboxArgs\032\'.sd252" +
+      "6.trab.api.grpc.SearchInboxResult\022`\n\025Int" +
+      "ernalDeleteMessage\022/.sd2526.trab.api.grp" +
+      "c.InternalDeleteMessageArgs\032\026.google.pro" +
+      "tobuf.EmptyB\026\n\024sd2526.trab.api.grpcb\006pro" +
+      "to3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -8307,6 +8886,12 @@ public final class Messages {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_sd2526_trab_api_grpc_SearchInboxResult_descriptor,
         new java.lang.String[] { "Mids", });
+    internal_static_sd2526_trab_api_grpc_InternalDeleteMessageArgs_descriptor =
+      getDescriptor().getMessageTypes().get(10);
+    internal_static_sd2526_trab_api_grpc_InternalDeleteMessageArgs_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_sd2526_trab_api_grpc_InternalDeleteMessageArgs_descriptor,
+        new java.lang.String[] { "Mid", });
     com.google.protobuf.EmptyProto.getDescriptor();
   }
 
