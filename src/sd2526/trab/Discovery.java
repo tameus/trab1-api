@@ -1,18 +1,5 @@
 package sd2526.trab;
 
-//import java.net.URI;
-
-//This is a fake Discovery implementation...
-
-
-
-    /*static public URI[] knownUrisOf(String serviceName, int minReplies) {
-        return null; //TODO;
-    }
-
-    static public void announce(String serviceName, String serviceURI) {
-        //TODO
-    }*/
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -23,8 +10,10 @@ import java.net.SocketException;
 import java.net.URI;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
@@ -168,13 +157,24 @@ public class Discovery {
      *
      */
     public URI[] knownUrisOf(String serviceName, int minReplies) {
-        // TODO: implement this method
         while (true){
             Map<URI,Long> urisOfService = knownServers.get(serviceName);
             if (urisOfService != null) {
                 long currentTime = System.currentTimeMillis();
-                List<URI> validUris = new ArrayList<>();
-                for(Map.Entry<URI,Long> entry : urisOfService.entrySet()){
+                //limpar servidores que expiraram
+                Iterator<Map.Entry<URI, Long>> iterator = urisOfService.entrySet().iterator();
+                while (iterator.hasNext()) {
+                    Entry<URI, Long> entry = iterator.next();
+                    long lastTime = entry.getValue();
+                    if (currentTime - lastTime > DISCOVERY_RETRY_TIMEOUT) {
+                        iterator.remove();
+                    }
+                }
+                if(urisOfService.size() >= minReplies){
+                    return urisOfService.keySet().toArray(new URI[0]);
+                }
+                /*List<URI> validUris = new ArrayList<>();
+                for(Entry<URI,Long> entry : urisOfService.entrySet()){
                     URI uri = entry.getKey();
                     long lastTime = entry.getValue();
                     if(currentTime - lastTime <= DISCOVERY_RETRY_TIMEOUT){
@@ -185,7 +185,7 @@ public class Discovery {
                 }
                 if(validUris.size() >= minReplies){
                     return validUris.toArray(new URI[0]);
-                }
+                }*/
             }
             try {
                 Thread.sleep(DISCOVERY_ANNOUNCE_PERIOD);
@@ -193,7 +193,6 @@ public class Discovery {
                 e.printStackTrace();
             }
         }
-        //throw new Error("Not Implemented...");
     }
 
     // Main just for testing purposes
