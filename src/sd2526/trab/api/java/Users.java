@@ -69,6 +69,8 @@ public interface Users {
 	 * FORBIDDEN if the password is incorrect or the user does not exist 
 	 * BAD_REQUEST if the parameters are invalid (eg., null parameters).
 	 */
-	Result<List<User>> searchUsers(String name, String pwd, String query);	
-	
+	Result<List<User>> searchUsers(String name, String pwd, String query);
+
+	Result<User> verifyUser(String name);
+
 }

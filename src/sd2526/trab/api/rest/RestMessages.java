@@ -59,4 +59,9 @@ public interface RestMessages {
 	@DELETE
 	@Path("/{" + NAME + "}/{" + MID + "}")
 	void deleteMessage(@PathParam(NAME) String name, @PathParam(MID) String mid, @QueryParam(PWD) String pwd);
+
+	@DELETE
+	@Path("/internal/{" + MID + "}")
+	@Produces(MediaType.APPLICATION_JSON)
+	String internalDeleteMessage(@PathParam(MID) String mid);
 }

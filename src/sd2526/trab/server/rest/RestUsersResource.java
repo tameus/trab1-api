@@ -54,4 +54,11 @@ public class RestUsersResource extends RestResource implements RestUsers {
 
         return super.unwrapResultOrThrow( impl.searchUsers( name, pwd, query));
     }
+
+    @Override
+    public User verifyUser(String name) {
+        Log.info("verifyUser : name = " + name);
+
+        return super.unwrapResultOrThrow( impl.verifyUser(name));
+    }
 }

@@ -23,39 +23,41 @@ public class RestMessagesResource extends RestResource implements RestMessages {
     }
     @Override
     public String postMessage(String pwd, Message msg) {
-        Log.info("postMessage : " + msg);
+        Log.info("postMessage");
 
         return super.unwrapResultOrThrow( impl.postMessage( pwd,msg ) );
     }
 
     @Override
     public Message getMessage(String name, String mid, String pwd) {
-        //Log.info("getMessage : user = " + name + "; pwd = " + pwd);
-
+        Log.info("getMessage");
         return super.unwrapResultOrThrow( impl.getInboxMessage(name,mid, pwd));
 
     }
 
     @Override
     public List<String> getMessages(String name, String pwd, String query) {
+        Log.info("getMessages");
+        return super.unwrapResultOrThrow( impl.searchInbox(name, pwd,query));
 
-        if (query == null || query.isBlank()){
-            return super.unwrapResultOrThrow( impl.getAllInboxMessages(name, pwd));
-        } else{
-            return super.unwrapResultOrThrow( impl.searchInbox(name, pwd,query));
-
-        }
     }
 
     @Override
     public void removeFromUserInbox(String name, String mid, String pwd) {
-
+        Log.info("removeFromUserInbox");
         super.unwrapResultOrThrow( impl.removeInboxMessage(name,mid,pwd));
     }
 
     @Override
     public void deleteMessage(String name, String mid, String pwd) {
+        Log.info("deleteMessage");
         super.unwrapResultOrThrow( impl.deleteMessage( name, mid,pwd));
 
+    }
+
+    @Override
+    public String internalDeleteMessage(String mid) {
+        Log.info("internalDeleteMessage: " + mid);
+        return super.unwrapResultOrThrow(impl.internalDeleteMessage(mid));
     }
 }

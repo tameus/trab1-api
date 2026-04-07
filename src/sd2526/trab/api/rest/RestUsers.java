@@ -47,5 +47,10 @@ public interface RestUsers {
 	@GET
 	@Path("/")
 	@Produces(MediaType.APPLICATION_JSON)
-	List<User> searchUsers(@QueryParam(NAME) String name, @QueryParam(PWD) String pwd, @QueryParam(QUERY) String pattern);	
+	List<User> searchUsers(@QueryParam(NAME) String name, @QueryParam(PWD) String pwd, @QueryParam(QUERY) String pattern);
+
+	@GET
+	@Path("/{name}/verify")
+	@Produces(MediaType.APPLICATION_JSON)
+	User verifyUser(@PathParam("name") String name);
 }

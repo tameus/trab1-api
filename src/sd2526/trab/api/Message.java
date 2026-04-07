@@ -1,5 +1,6 @@
 package sd2526.trab.api;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -19,7 +20,8 @@ public class Message {
 	@ElementCollection
 	private Set<String> destination;
 	private long creationTime;
-	private String subject;	
+	private String subject;
+	@Column(length = 10000)
 	private String contents;
 	
 	public Message() {
