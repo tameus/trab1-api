@@ -1,49 +1,30 @@
 package sd2526.trab.server.grpc;
 
-
-
-import io.grpc.Server;
-import io.grpc.ServerBuilder;
-import sd2526.trab.Discovery;
-import sd2526.trab.server.rest.AbstractRestServer;
-
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.logging.Logger;
 
-public class GrpcUsersServer  {
+import io.grpc.Grpc;
+import io.grpc.InsecureServerCredentials;
+import io.grpc.Server;
+import io.grpc.ServerCredentials;
 
-    private static final int PORT = 8091;
+public class GrpcUsersServer {
+    public static final int PORT = 9000;
 
-    public static void main(String[] args)  throws Exception {
+    private static final String GRPC_CTX = "/grpc";
+    private static final String SERVER_BASE_URI = "grpc://%s:%s%s";
 
-        String domain = getDomainFromHostName();
-        String ip = InetAddress.getLocalHost().getHostAddress();
-        String serverUri = String.format("grpc://%s:%d", ip, PORT);
+    private static Logger Log = Logger.getLogger(GrpcUsersServer.class.getName());
 
-        Discovery discovery = new Discovery(Discovery.DISCOVERY_ADDR,"Users@" + domain, serverUri);
-        discovery.start();
-        Server server = io.grpc.ServerBuilder.forPort(PORT)
+    public static void main(String[] args) throws Exception {
 
-                .addService(new GrpcUsersResource(domain))
-                .build();
+        GrpcUsersController stub = new GrpcUsersController();
+        ServerCredentials cred = InsecureServerCredentials.create();
+        Server server = Grpc.newServerBuilderForPort(PORT, cred) .addService(stub).build();
+        String serverURI = String.format(SERVER_BASE_URI, InetAddress.getLocalHost().getHostAddress(), PORT, GRPC_CTX);
 
-        server.start();
-
-
-        server.awaitTermination();
-    }
-
-    private static String getDomainFromHostName() {
-        String domain ="mydomain"; //default
-        try{
-            String hostName = InetAddress.getLocalHost().getHostName();
-            if(hostName.contains(".")){
-                domain = hostName.substring(hostName.indexOf('.')+1);
-            }
-        }catch (UnknownHostException e){
-            e.printStackTrace();
-        }
-        return domain;
+        Log.info(String.format("Users gRPC Server ready @ %s\n", serverURI));
+        server.start().awaitTermination();
     }
 }
+
