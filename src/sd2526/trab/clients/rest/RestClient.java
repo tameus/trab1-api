@@ -1,7 +1,6 @@
 package sd2526.trab.clients.rest;
 
 import java.net.URI;
-import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 import org.glassfish.jersey.client.ClientConfig;
@@ -16,16 +15,12 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import sd2526.trab.api.java.Result;
 import sd2526.trab.api.java.Result.ErrorCode;
+import sd2526.trab.clients.AbstractClient;
 
-public class RestClient {
-
-    private static final int MAX_RETRIES = 3;
-    private static final long RETRY_SLEEP = 10000;
+public class RestClient extends AbstractClient {
 
     private static final int READ_TIMEOUT = 10000;
-    private static final int CONNECT_TIMEOUT = 10000;
-
-    final Logger logger;
+    private static final int CONNECT_TIMEOUT = 1000;
 
     final URI serverURI;
     final Client client;
@@ -34,34 +29,25 @@ public class RestClient {
     protected WebTarget target;
 
     public RestClient(URI serverURI, Logger logger) {
+        super(logger);
         this.serverURI = serverURI;
-        this.logger = logger;
 
         this.config = new ClientConfig();
-
         this.config.property(ClientProperties.READ_TIMEOUT, READ_TIMEOUT);
         this.config.property(ClientProperties.CONNECT_TIMEOUT, CONNECT_TIMEOUT);
 
         this.client = ClientBuilder.newClient(config);
-
         this.target = client.target(serverURI);
     }
 
-    protected <T> Result<T> reTry(Supplier<Result<T>> func) {
+    @Override
+    protected boolean isRetryable(RuntimeException e) {
+        return e instanceof ProcessingException;
+    }
 
-        for (int i = 0; i < MAX_RETRIES; i++) {
-            try {
-                return func.get();
-            } catch (ProcessingException x) {
-                logger.info("Timeout[ try: %d : %s]".formatted(i, x.getMessage()));
-
-                this.sleep(RETRY_SLEEP);
-            } catch (Exception x) {
-                x.printStackTrace();
-                return Result.error(ErrorCode.INTERNAL_ERROR);
-            }
-        }
-        return Result.error(ErrorCode.TIMEOUT);
+    @Override
+    protected ErrorCode toErrorCode(RuntimeException e) {
+        return ErrorCode.INTERNAL_ERROR;
     }
 
     //para objetos
@@ -98,7 +84,6 @@ public class RestClient {
         }
     }
 
-
     protected static ErrorCode getErrorCodeFrom(int status) {
         return switch (status) {
             case 200, 209 -> ErrorCode.OK;
@@ -108,15 +93,8 @@ public class RestClient {
             case 400 -> ErrorCode.BAD_REQUEST;
             case 500 -> ErrorCode.INTERNAL_ERROR;
             case 501 -> ErrorCode.NOT_IMPLEMENTED;
+            case 503 -> ErrorCode.TIMEOUT;
             default -> ErrorCode.INTERNAL_ERROR;
         };
-    }
-
-    private void sleep(long ms) {
-        try {
-            Thread.sleep(ms);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 }

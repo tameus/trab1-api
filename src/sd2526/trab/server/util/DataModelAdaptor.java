@@ -10,9 +10,14 @@ import sd2526.trab.api.grpc.Messages.GrpcMessage;
 
 public class DataModelAdaptor {
 
+    //vazio para null
+    private static String grpcString(String s) {
+        return s.isEmpty() ? null : s;
+    }
+
     public static User GrpcUser_to_User(GrpcUser from) {
         return new User(
-                from.getName().isEmpty() ? null : from.getName(),
+                grpcString(from.getName()),
                 from.hasPwd() ? from.getPwd() : null,
                 from.hasDisplayName() ? from.getDisplayName() : null,
                 from.hasDomain() ? from.getDomain() : null
@@ -40,15 +45,11 @@ public class DataModelAdaptor {
     public static Message GrpcMessage_to_Message(GrpcMessage from) {
         Message m = new Message();
 
-        m.setId(from.getId().isEmpty() ? null : from.getId());
-        m.setSender(from.getSender().isEmpty() ? null : from.getSender());
-        m.setSubject(from.getSubject().isEmpty() ? null : from.getSubject());
-        m.setContents(from.getContents().isEmpty() ? null : from.getContents());
-
-        if (from.getDestinationList() != null) {
-            m.setDestination(new HashSet<>(from.getDestinationList()));
-        }
-
+        m.setId(grpcString(from.getId()));
+        m.setSender(grpcString(from.getSender()));
+        m.setSubject(grpcString(from.getSubject()));
+        m.setContents(grpcString(from.getContents()));
+        m.setDestination(new HashSet<>(from.getDestinationList()));
         m.setCreationTime(from.getCreationTime());
 
         return m;

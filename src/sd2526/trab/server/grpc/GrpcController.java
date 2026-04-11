@@ -14,6 +14,7 @@ public class GrpcController {
             case FORBIDDEN -> io.grpc.Status.PERMISSION_DENIED;
             case NOT_IMPLEMENTED -> io.grpc.Status.UNIMPLEMENTED;
             case BAD_REQUEST -> io.grpc.Status.INVALID_ARGUMENT;
+            case TIMEOUT -> io.grpc.Status.UNAVAILABLE;
             default -> io.grpc.Status.INTERNAL;
         };
 

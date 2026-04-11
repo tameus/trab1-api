@@ -10,7 +10,9 @@ import sd2526.trab.clients.java.Clients;
 import sd2526.trab.server.persistence.Hibernate;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 public class JavaMessages implements Messages {
@@ -21,7 +23,6 @@ public class JavaMessages implements Messages {
     private static final long DELETE_TIMEOUT = 30000;
 
     private static final String FAILED_DELIVERY = "FAILED TO SEND %s TO %s: UNKNOWN USER";
-    private static final String FAILED_ID = "%s.%s";
     private static final String SELECT_INBOX_ENTRY = "SELECT i FROM Inbox i WHERE i.userAddress = '%s' AND i.messageId = '%s'";
     private static final String SELECT_MESSAGE = "SELECT m FROM Message m LEFT JOIN FETCH m.destination WHERE m.id = '%s'";
     private static final String SELECT_INBOX_IDS = "SELECT i.messageId FROM Inbox i WHERE i.userAddress = '%s'";
@@ -31,9 +32,10 @@ public class JavaMessages implements Messages {
             "AND (LOWER(m.subject) LIKE LOWER('%%%s%%') OR LOWER(m.contents) LIKE LOWER('%%%s%%'))";
     private static final String OPN = "<";
     private static final String CLS = ">";
-    private static final String TIMEOUT = "FAILED TO SEND %s TO %s: TIMEOUT";
+    private static final String TIMEOUT_MSG = "FAILED TO SEND %s TO %s: TIMEOUT";
     private static final long MAX_TIMEOUT = 90000;
     private static final long RETRY_DELAY = 500;
+    private static final int MAX_PERSIST_RETRIES = 10;
 
     private static Logger Log = Logger.getLogger(JavaMessages.class.getName());
 
@@ -41,16 +43,14 @@ public class JavaMessages implements Messages {
     private final Discovery discovery;
     private final Hibernate hibernate;
     private final Users usersClient;
-    //private final MessagesAux messAux;
 
+    private static final ExecutorService threadPool = Executors.newCachedThreadPool();
 
     public JavaMessages(String domain, Discovery discovery) {
         this.domain = domain;
         this.discovery = discovery;
-        this.hibernate = Hibernate.getInstance(); // A BD já está aqui pronta a usar!
+        this.hibernate = Hibernate.getInstance();
         this.usersClient = Clients.UsersClient.get(domain, discovery);
-        //this.messAux = new MessagesAux(domain,discovery,hibernate);
-
     }
 
     @Override
@@ -62,57 +62,58 @@ public class JavaMessages implements Messages {
             return Result.error(Result.ErrorCode.BAD_REQUEST);
         }
 
-        boolean isNotification = msg.getId() != null && msg.getId().contains(".");
-
         String sender = msg.getSender();
         String[] senderParts = parseSender(sender);
-        //String sender = msg.getSender();
-        //vem com <name@domain>, local é name@domain ou só name
         String senderName = senderParts[0];
         String senderDomain = senderParts[1];
-        boolean isForwarded = (sender.contains(OPN) && sender.contains(CLS))||isNotification;
 
-        if (!isForwarded) {
+        if (!sender.contains(OPN)) {
+            //sender local: verifica-lo e atualizar msg
             Result<String> res = handleLocalSender(pwd, msg, senderName, senderDomain);
-            //dá erro -> devolve logo
             if (!res.isOK()) return res;
+            String mid = msg.getId();
+            //obter destinos remotos
+            Set<String> remoteDomains = new HashSet<>();
+            for (String dest : msg.getDestination()) {
+                if (!extractDomain(dest).equals(this.domain) && senderDomain.equals(this.domain))
+                    remoteDomains.add(extractDomain(dest));
+            }
+            List<String> unknownDests = new ArrayList<>();
+            //obter inboxes e msg + destinos desconhecidos
+            Object[] toPersist = collectLocalDeliveries(msg, unknownDests);
+            //persistir msg+inboxes
+            Result<String> persistResult = persistWithRetry(mid, toPersist);
+            //ver se da erro
+            if (!persistResult.isOK()) return persistResult;
+            //enviar notificacao ao sender por cada destido desconhecido
+            for (String dest : unknownDests) notificationDelivery(msg, dest, FAILED_DELIVERY);
+            //realizar a entrega remota
+            for (String remoteDomain : remoteDomains) remoteDelivery(remoteDomain, pwd, msg);
+            return Result.ok(mid);
         } else {
-            //já devia ter id, se vem de outro dominio
+            //sender remoto
             if (msg.getId() == null || msg.getId().isBlank()) {
                 return Result.error(Result.ErrorCode.BAD_REQUEST);
             }
-        }
-
-        int maxRetries = 10;
-        int currentRetry = 0;
-        boolean success = false;
-        while (currentRetry < maxRetries && !success) {
-            try {
-                //testar idempotencia (so quando id != null), se ja existe nao faz nada
-                if (hibernate.get(Message.class, msg.getId()) != null) {
-                    return Result.ok(msg.getId());
-                }
-                //guardar mensagem na bd
-                hibernate.persist(msg);
-                success = true;
-            } catch (Exception e) {
-                if (hibernate.get(Message.class, msg.getId()) != null) {
-                    return Result.ok(msg.getId());
-                }
-                currentRetry++;
-                Log.warning("Concurrency error (attempt " + currentRetry + "): " + e.getMessage());
-                try {
-                    Thread.sleep(50);
-                } catch (InterruptedException ignored) {
-                }
+            String mid = msg.getId();
+            List<String> unknownDests = new ArrayList<>();
+            //obter inboxes e msg + destinos desconhecidos
+            Object[] toPersist = collectLocalDeliveries(msg, unknownDests);
+            //persistir msg+inboxes
+            synchronized (mid.intern()) {
+                //mensagem foi apagada
+                if (hibernate.get(DeletedMessage.class, mid) != null) 
+                    return Result.ok(mid);
+                //posta mensagem
+                Result<String> persistResult = persistWithRetry(mid, toPersist);
+                if (!persistResult.isOK()) return persistResult;
             }
+            //notificar sender sobre destinos inexistentes
+            for (String dest : unknownDests){
+                notificationDelivery(msg, dest, FAILED_DELIVERY);
+            } 
+            return Result.ok(mid);
         }
-        if (!success) {
-            return Result.error(Result.ErrorCode.INTERNAL_ERROR);
-        }
-        //enviar a cada destinatário
-        sendToDestinations(msg, senderName, senderDomain, pwd);
-        return Result.ok(msg.getId());
     }
 
     @Override
@@ -121,7 +122,6 @@ public class JavaMessages implements Messages {
         if (name == null || name.isBlank() || mid == null || mid.isBlank() || pwd == null || pwd.isBlank()) {
             return Result.error(Result.ErrorCode.BAD_REQUEST);
         }
-        //var user = messAux.checkUser(name,pwd,this.domain);
         //forbidden, validar user
         Result<User> res = usersClient.getUser(name, pwd);
         if (!res.isOK()) {
@@ -180,18 +180,18 @@ public class JavaMessages implements Messages {
             return Result.error(res.error());
         }
 
-        //apagar apenas da inbox do utilizador
         try {
             String query = String.format(SELECT_INBOX_ENTRY, name, mid);
-
             List<Inbox> entries = hibernate.jpql(query, Inbox.class);
             //notfound
             if (entries.isEmpty()) {
                 return Result.error(Result.ErrorCode.NOT_FOUND);
             }
-            try {
-                hibernate.delete(entries.get(0));
-            }catch(Exception ignored) {}
+            for (Inbox i : entries) {
+                try {
+                    hibernate.delete(i);
+                } catch (Exception ignored) {}
+            }
             return Result.ok();
         } catch (Exception e) {
             return Result.error(Result.ErrorCode.INTERNAL_ERROR);
@@ -216,52 +216,26 @@ public class JavaMessages implements Messages {
                 //já está apagada ou nao existe
                 return Result.ok();
             }
-            /*Message msg = hibernate.get(Message.class,mid);
-            //caso nao exista, nao acontece nada e da ok
-            if(msg == null) {
-                return Result.ok();
-            }*/
+
             //user=sender
             String expected = String.format(SENDER_EMAIL, name, this.domain);
             if (!msg.getSender().contains(expected)) {
                 return Result.error(Result.ErrorCode.FORBIDDEN);
             }
             //30 segundos (esta em milisegundos)
-            if (System.currentTimeMillis() - msg.getCreationTime() > DELETE_TIMEOUT) {
+            if ((System.currentTimeMillis() - msg.getCreationTime()) > DELETE_TIMEOUT) {
                 return Result.error(Result.ErrorCode.FORBIDDEN);
             }
             //copia segura
             Set<String> destinations = Set.copyOf(msg.getDestination());
-            String messageId = msg.getId();
-            //apagar inboxes (mid e nnao messageId)
-            /*String ibxQuery = String.format(SELECT_INBOX_BY_MID, messageId);
-            List<Inbox> inboxes = hibernate.jpql(ibxQuery,Inbox.class);
-            for(Inbox i : inboxes){
-                hibernate.delete(i);
-            }
-
-            //apagar inboxes
-            String ibxQuery = String.format(DELETE_INBOX, messageId);
-            hibernate.jpql(ibxQuery,Inbox.class);
-            //apagar destinos
-            String destQuery = String.format(DELETE_MESSAGE_DESTS, messageId);
-            hibernate.jpql(destQuery,Message.class);
-
-            //apagar mensagem
-            hibernate.delete(msg);*/
             executeDelete(msg);
-            //internalDeleteMessage(messageId);
             //para outros dominios
-            remoteDelete(destinations, messageId);
+            remoteDelete(destinations, mid);
             return Result.ok();
         } catch (Exception e) {
             return Result.error(Result.ErrorCode.INTERNAL_ERROR);
-
         }
     }
-
-
-
 
     @Override
     public Result<List<String>> searchInbox(String name, String pwd, String query) {
@@ -288,21 +262,20 @@ public class JavaMessages implements Messages {
 
     @Override
     public Result<String> internalDeleteMessage(String mid) {
-        try {
-            Message msg = fetchMessage(mid);
-            if (msg == null) {
-                return Result.ok(mid);
+        synchronized (mid.intern()) {
+            try {
+                hibernate.persist(new DeletedMessage(mid));
+            } catch (Exception ignored) {}
+            try {
+                Message msg = fetchMessage(mid);
+                if (msg != null) {
+                    executeDelete(msg);
+                }
+            } catch (Exception e) {
+                return Result.error(Result.ErrorCode.INTERNAL_ERROR);
             }
-            /*String ibxQuery = String.format(DELETE_INBOX, mid);
-            hibernate.jpql(ibxQuery,Inbox.class);
-            //apagar destinos
-            String destQuery = String.format(DELETE_MESSAGE_DESTS, mid);
-            hibernate.jpql(destQuery,Message.class);*/
-            executeDelete(msg);
-            return Result.ok(mid);
-        } catch (Exception e) {
-            return Result.error(Result.ErrorCode.INTERNAL_ERROR);
         }
+        return Result.ok(mid);
     }
 
     private String extractName(String address) {
@@ -318,9 +291,8 @@ public class JavaMessages implements Messages {
     }
 
     private String[] parseSender(String sender) {
-        boolean isForwarded = sender.contains(OPN) && sender.contains(CLS);
         String senderName, senderDomain;
-        if (isForwarded) {
+        if (sender.contains(OPN) && sender.contains(CLS)) {
             senderName = sender.substring(sender.indexOf(OPN) + 1, sender.indexOf(AT));
             senderDomain = sender.substring(sender.indexOf(AT) + 1, sender.indexOf(CLS));
         } else {
@@ -342,9 +314,7 @@ public class JavaMessages implements Messages {
 
         //forbidden- validar sender
         Result<User> res = usersClient.getUser(senderName, pwd);
-        if (!res.isOK()) {
-            return Result.error(res.error());
-        }
+        if (!res.isOK()) return Result.error(res.error());
         User senderUser = res.value();
 
         //gerar id da mensagem e tratar dominio
@@ -361,32 +331,40 @@ public class JavaMessages implements Messages {
         return Result.ok();
     }
 
-    private void sendToDestinations(Message msg, String senderName, String senderDomain, String pwd) {
-        Set<String> remoteDomains = new HashSet<String>();
+    private Object[] collectLocalDeliveries(Message msg, List<String> unknownDests) {
+        String mid = msg.getId();
+        List<Inbox> localInboxes = new ArrayList<>();
         for (String dest : msg.getDestination()) {
-            //para cada mensagem analisar o destino
-            String destName = extractName(dest);
-            String destDomain = extractDomain(dest);
-            if (destDomain.equals(this.domain)) {
-                //enviar para utilizador local
-                localDelivery(dest, destName, msg);
-            } else if (senderDomain.equals(this.domain)) {
-                //enviar para utilizador remoto, a partir deste dominio
-                remoteDomains.add(destDomain);
+            if (extractDomain(dest).equals(this.domain)) {
+                if (usersClient.verifyUser(extractName(dest)).isOK())
+                    localInboxes.add(new Inbox(extractName(dest), mid));
+                else
+                    unknownDests.add(dest);
             }
         }
-        for (String remoteDomain : remoteDomains) {
-            remoteDelivery(remoteDomain, pwd, msg);
-        }
+        //persistir mensagem + inboxes de uma so vez
+        Object[] toPersist = new Object[localInboxes.size() + 1];
+        toPersist[0] = msg;
+        for (int i = 0; i < localInboxes.size(); i++){
+            toPersist[i+1] = localInboxes.get(i);
+        } 
+        return toPersist;
     }
 
-    private void localDelivery(String dest, String destName, Message msg) {
-        Result<User> res = usersClient.verifyUser(destName);
-        if (res.isOK()) {
-            hibernate.persist(new Inbox(destName, msg.getId()));
-        } else {
-            notificationDelivery(msg, dest, FAILED_DELIVERY);
+    private Result<String> persistWithRetry(String mid, Object[] toPersist) {
+        for (int i = 0; i < MAX_PERSIST_RETRIES; i++) {
+            try {
+                //ja existe
+                if (hibernate.get(Message.class, mid) != null) return Result.ok(mid);
+                hibernate.persist(toPersist);
+                return Result.ok(mid);
+            } catch (Exception e) {
+                if (hibernate.get(Message.class, mid) != null) return Result.ok(mid);
+                Log.warning("Concurrency error (attempt " + (i + 1) + "): " + e.getMessage());
+                try { Thread.sleep(100); } catch (InterruptedException ignored) {}
+            }
         }
+        return Result.error(Result.ErrorCode.INTERNAL_ERROR);
     }
 
     private void notificationDelivery(Message msg, String dest, String subject){
@@ -396,30 +374,26 @@ public class JavaMessages implements Messages {
         String senderName = parsed[0];
         String senderDomain = parsed[1];
         Message notification = new Message();
-        //notification.setId(String.format(FAILED_ID, msg.getId(), extractName(dest)) + AT + this.domain);
-        //notification.setId(String.format(FAILED_ID, msg.getId(), dest));
+
         notification.setId(msg.getId()+"."+dest);
 
         notification.setSender(msg.getSender());
 
-        Set<String>dests =new HashSet<>();
-        dests.add(senderName+ AT + senderDomain);
+        Set<String> dests = new HashSet<>();
+        dests.add(senderName + AT + senderDomain);
         notification.setDestination(dests);
-        //notification.setDestination(Set.of(senderName + AT + senderDomain));
 
         notification.setSubject(String.format(subject, msg.getId(), dest));
         notification.setContents(msg.getContents());
         notification.setCreationTime(System.currentTimeMillis());
-        Log.info("Prestes a entrar na thread: " + notification.getId());
 
         try {
-            Log.info("A gravar Timeout Notif na DB local: " + notification.getId());
             hibernate.persist(notification);
             if (senderDomain.equals(this.domain)) {
-                Log.info("A colocar na inbox de " + senderName);
+                Log.info("Putting in inbox of " + senderName);
                 hibernate.persist(new Inbox(senderName, notification.getId()));
             } else {
-                Log.info("A enviar notif para dominio " + senderDomain);
+                Log.info("Sending notif to domain " + senderDomain);
                 remoteDelivery(senderDomain, null, notification);
             }
         } catch (Exception e) {
@@ -428,103 +402,17 @@ public class JavaMessages implements Messages {
     }
 
     private void remoteDelivery(String destDomain, String pwd, Message msg) {
-        AtomicBoolean success = new AtomicBoolean(false);
-        AtomicBoolean timeIsUp = new AtomicBoolean(false);
-        Timer timer = new Timer(true);
-
-        timer.schedule(new TimerTask(){
-            @Override
-            public void run() {
-                timeIsUp.set(true);
-
-                if(!success.get()){
-                    Log.warning("Gave up sending to " + destDomain + " after 90s.");
-                    //String destUser = "";
-                    for(String d : msg.getDestination()) {
-                        if(d.endsWith(destDomain)){
-                            //destUser = d;
-                            //break;
-                            notificationDelivery(msg, d, TIMEOUT);
-                        }
-                    }
-                    /*if(!destUser.isEmpty()){
-                        notificationDelivery(msg, destUser, TIMEOUT);
-                    }*/
-                }
-            }
-        }, MAX_TIMEOUT);
-
-        new Thread(() -> {
-            //Messages messagesClient = Clients.MessagesClient.get(destDomain, this.discovery);
-            long startTime = System.currentTimeMillis();
-
-            while (!success.get() && !timeIsUp.get() && (System.currentTimeMillis()-startTime)<MAX_TIMEOUT){
-                try {
-                    Messages messagesClient = Clients.MessagesClient.get(destDomain, this.discovery);
-
-                    Result<String> res = messagesClient.postMessage(pwd, msg);
-                    if (res.isOK()) {
-                        success.set(true);
-                        timer.cancel();
-                    }else{
-                        if(!timeIsUp.get()){
-                            try { Thread.sleep(RETRY_DELAY); } catch (InterruptedException ignored) {}
-                        }
-                    }
-                } catch (Exception e) {
-                    if(!timeIsUp.get()){
-                        try { Thread.sleep(RETRY_DELAY); } catch (InterruptedException ignored) {}
-                    }
-                }
-            }
-        }).start();
-
-    }
-
-
-        /*new Thread(()->{
-            long startTime = System.currentTimeMillis();
-            boolean success = false;
-            Messages messagesClient = Clients.MessagesClient.get(destDomain, this.discovery);
-            while(!success &&(System.currentTimeMillis()-startTime)<MAX_TIMEOUT) {
-                try{
-                    messagesClient.postMessage(pwd, msg);
-                    success = true;
-                }catch(Exception e){
-                    try { Thread.sleep(RETRY_DELAY); } catch (InterruptedException ignored) {}
-                }
-            }
-            if(!success){
+        submitWithRetry(
+            //post messangem
+            () -> Clients.MessagesClient.get(destDomain, this.discovery).postMessage(pwd, msg),
+            //o que fazer caso dê timeout
+            () -> {
                 Log.warning("Gave up sending to " + destDomain + " after 90s.");
-                String destUser = "";
-                for(String d : msg.getDestination()) {
-                    if(d.endsWith(destDomain)){
-                        destUser = d;
-                        break;
-                    }
-                }
-                if(!destUser.isEmpty()){
-                    notificationDelivery(msg, destUser, TIMEOUT);
-                }
+                for (String d : msg.getDestination())
+                    if (d.endsWith(destDomain)) notificationDelivery(msg, d, TIMEOUT_MSG);
             }
-
-        }).start();
-    }*/
-
-    /*private void generateTimeoutNotification(String destDomain, Message msg) {
-        Log.warning("Gave up sending to " + destDomain + " after 90s.");
-        String destUser = "";
-        for(String d : msg.getDestination()) {
-            if(d.endsWith(destDomain)){
-                destUser = d;
-                break;
-            }
-        }
-        if(!destUser.isEmpty()){
-            notificationDelivery(msg, destUser, TIMEOUT);
-        }
-    }*/
-
+        );
+    }
     private Message fetchMessage(String mid) {
         String msgQuery = String.format(SELECT_MESSAGE, mid);
         List<Message> messages = hibernate.jpql(msgQuery, Message.class);
@@ -533,77 +421,45 @@ public class JavaMessages implements Messages {
         return messages.get(0);
     }
     private void executeDelete(Message msg) {
-        //apagar inboxes
         String ibxQuery = String.format(SELECT_INBOX_BY_MID, msg.getId());
         List<Inbox> inboxes = hibernate.jpql(ibxQuery, Inbox.class);
-        for (Inbox i : inboxes) {
-            try {
-                hibernate.delete(i);
-            } catch (Exception ignored) {}
-        }
-        //apagar mensagens
+        //msg+inboxes num só
+        List<Object> toDelete = new ArrayList<>(inboxes);
+        toDelete.add(msg);
         try {
-            hibernate.delete(msg);
+            hibernate.delete(toDelete.toArray());
         } catch (Exception ignored) {}
     }
     private void remoteDelete(Set<String> destination, String mid) {
         Set<String> remoteDomains = new HashSet<>();
-
-        for(String dest : destination){
+        for (String dest : destination) {
             String destDomain = extractDomain(dest);
-            if (!destDomain.equals(this.domain)) {
+            if (!destDomain.equals(this.domain)) 
                 remoteDomains.add(destDomain);
-            }
         }
-        for(String remoteDomain : remoteDomains){
-            new Thread(()->{
-                long startTime = System.currentTimeMillis();
-                boolean success = false;
-                Messages messagesClient = Clients.MessagesClient.get(remoteDomain, this.discovery);
-                while(!success &&(System.currentTimeMillis()-startTime)<MAX_TIMEOUT) {
-                    try{
-                        messagesClient.internalDeleteMessage(mid);
-                        success = true;
-                    }catch(Exception e){
-                        try { Thread.sleep(RETRY_DELAY); } catch (InterruptedException ignored) {}
-                    }
-                }
-            }).start();
+        for (String remoteDomain : remoteDomains) {
+            submitWithRetry(
+                //apagar mensagem
+                () -> Clients.MessagesClient.get(remoteDomain, this.discovery).internalDeleteMessage(mid),
+                //nao acontece nada em timeout
+                () -> {}
+            );
         }
     }
 
-    /*private interface RemoteAction {
-        void execute() throws Exception;
-    }
-    private void executeWithRetry(String destDomain, RemoteAction action, Runnable onTimeout) {
-        Timer timer = new Timer(true);
-        AtomicBoolean success = new AtomicBoolean(false);
-        AtomicBoolean timeIsUp = new AtomicBoolean(false);
-
-        timer.schedule(new TimerTask(){
-            @Override
-            public void run() {
-                timeIsUp.set(true);
-                if(!success.get() && onTimeout != null){
-                    onTimeout.run();
-                }
-            }
-        }, MAX_TIMEOUT);
-
-        new Thread(() -> {
-            while (!success.get() && !timeIsUp.get()){
+private void submitWithRetry(Supplier<Result<String>> operation, Runnable onTimeout) {
+        threadPool.submit(() -> {
+            long startTime = System.currentTimeMillis();
+            while ((System.currentTimeMillis() - startTime) < MAX_TIMEOUT) {
                 try {
-                    action.execute();
-                    success.set(true);
-                    timer.cancel();
-                } catch (Exception e) {
-                    if(!timeIsUp.get()){
-                        try { Thread.sleep(RETRY_DELAY); } catch (InterruptedException ignored) {}
-                    }
-                }
+                    //realizar operaçao enquanto nao ha timeout
+                    if (operation.get().isOK()) return;
+                } catch (Exception ignored) {}
+                try { Thread.sleep(RETRY_DELAY); } catch (InterruptedException ignored) {}
             }
-        }).start();
-
-    }*/
+            //açao caso dê timeout
+            onTimeout.run();
+        });
+    }
 
 }

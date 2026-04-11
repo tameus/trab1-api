@@ -47,6 +47,7 @@ public class Hibernate {
             tx = session.beginTransaction();
             for( var o : objects )
                 session.persist(o);
+            session.flush();
             tx.commit();
         } catch (Exception e) {
             if (tx!=null) tx.rollback();
@@ -99,13 +100,14 @@ public class Hibernate {
         try(var session = sessionFactory.openSession()) {
             tx = session.beginTransaction();
             for( var o : objects )
-                session.remove(o);
+                session.remove(session.merge(o));
             tx.commit();
         } catch (Exception e) {
             if (tx!=null) tx.rollback();
             throw e;
         }
     }
+
 
     /**
      * Performs a jpql Hibernate query (SQL dialect)

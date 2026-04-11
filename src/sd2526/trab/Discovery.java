@@ -79,7 +79,6 @@ public class Discovery {
             throw new RuntimeException("A multinet address has to be provided.");
         }
 
-        //fazer try, catch exceção?
         this.ms = new MulticastSocket(addr.getPort());
         this.ms.joinGroup(addr, NetworkInterface.getByInetAddress(InetAddress.getLocalHost()));
     }
@@ -133,7 +132,6 @@ public class Discovery {
                     if (msgElems.length == 2) { // periodic announcement
                         System.out.printf("FROM %s (%s) : %s\n", pkt.getAddress().getHostName(),
                                 pkt.getAddress().getHostAddress(), msg);
-                        // TODO: to complete by recording the received information
                         String name = msgElems[0];
                         URI uri = URI.create(msgElems[1]);
                         long currentTime = System.currentTimeMillis();
@@ -159,33 +157,8 @@ public class Discovery {
     public URI[] knownUrisOf(String serviceName, int minReplies) {
         while (true){
             Map<URI,Long> urisOfService = knownServers.get(serviceName);
-            if (urisOfService != null) {
-                long currentTime = System.currentTimeMillis();
-                //limpar servidores que expiraram
-                Iterator<Map.Entry<URI, Long>> iterator = urisOfService.entrySet().iterator();
-                while (iterator.hasNext()) {
-                    Entry<URI, Long> entry = iterator.next();
-                    long lastTime = entry.getValue();
-                    if (currentTime - lastTime > DISCOVERY_RETRY_TIMEOUT) {
-                        iterator.remove();
-                    }
-                }
-                if(urisOfService.size() >= minReplies){
-                    return urisOfService.keySet().toArray(new URI[0]);
-                }
-                /*List<URI> validUris = new ArrayList<>();
-                for(Entry<URI,Long> entry : urisOfService.entrySet()){
-                    URI uri = entry.getKey();
-                    long lastTime = entry.getValue();
-                    if(currentTime - lastTime <= DISCOVERY_RETRY_TIMEOUT){
-                        validUris.add(uri);
-                    }else {
-                        urisOfService.remove(uri);
-                    }
-                }
-                if(validUris.size() >= minReplies){
-                    return validUris.toArray(new URI[0]);
-                }*/
+            if (urisOfService != null && urisOfService.size() >= minReplies) {
+                return urisOfService.keySet().toArray(new URI[0]);
             }
             try {
                 Thread.sleep(DISCOVERY_ANNOUNCE_PERIOD);

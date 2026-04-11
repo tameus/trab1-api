@@ -24,5 +24,6 @@
 		<mapping class="sd2526.trab.api.User" />
 		<mapping class="sd2526.trab.api.Message" />
 		<mapping class="sd2526.trab.server.java.Inbox" />
+		<mapping class="sd2526.trab.server.java.DeletedMessage" />
 	</session-factory>
 </hibernate-configuration>

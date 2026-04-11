@@ -14,46 +14,42 @@ import java.util.List;
 import java.util.logging.Logger;
 @Singleton
 public class GatewayUsersResource extends RestResource implements RestUsers {
-    final Discovery discovery;
+    final Users client;
 
     @Inject
     public GatewayUsersResource(@Named("domain") String domain, Discovery discovery) {
         super(domain, Logger.getLogger(GatewayUsersResource.class.getName()));
-        this.discovery=discovery;
-    }
-
-    private Users getClient() {
-        return Clients.UsersClient.get(domain, discovery);
+        this.client = Clients.UsersClient.get(domain, discovery);
     }
 
     @Override
     public String postUser(User user) {
         Log.info("Gateway postUser...");
-        return super.unwrapResultOrThrow(getClient().postUser(user));
+        return super.unwrapResultOrThrow(client.postUser(user));
     }
 
     @Override
     public User getUser(String name, String pwd) {
-        return super.unwrapResultOrThrow(getClient().getUser(name, pwd));
+        return super.unwrapResultOrThrow(client.getUser(name, pwd));
     }
 
     @Override
     public User updateUser(String name, String pwd, User info) {
-        return super.unwrapResultOrThrow(getClient().updateUser(name, pwd, info));
+        return super.unwrapResultOrThrow(client.updateUser(name, pwd, info));
     }
 
     @Override
     public User deleteUser(String name, String pwd) {
-        return super.unwrapResultOrThrow(getClient().deleteUser(name, pwd));
+        return super.unwrapResultOrThrow(client.deleteUser(name, pwd));
     }
 
     @Override
     public List<User> searchUsers(String name, String pwd, String pattern) {
-        return super.unwrapResultOrThrow(getClient().searchUsers(name, pwd, pattern));
+        return super.unwrapResultOrThrow(client.searchUsers(name, pwd, pattern));
     }
 
     @Override
     public User verifyUser(String name) {
-        return super.unwrapResultOrThrow(getClient().verifyUser(name));
+        return super.unwrapResultOrThrow(client.verifyUser(name));
     }
 }

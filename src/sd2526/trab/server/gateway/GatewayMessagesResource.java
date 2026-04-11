@@ -15,46 +15,42 @@ import java.util.logging.Logger;
 @Singleton
 public class GatewayMessagesResource extends RestResource implements RestMessages {
 
-    final Discovery discovery;
+    final Messages client;
 
     @Inject
     public GatewayMessagesResource(@Named("domain") String domain, Discovery discovery){
         super(domain, Logger.getLogger(GatewayMessagesResource.class.getName()));
-        this.discovery = discovery;
-    }
-
-    private Messages getClient() {
-        return Clients.MessagesClient.get(domain, discovery);
+        this.client = Clients.MessagesClient.get(domain, discovery);
     }
 
     @Override
     public String postMessage(String pwd, Message msg) {
         Log.info("Gateway encaminhando postMessage...");
-        return super.unwrapResultOrThrow(getClient().postMessage(pwd, msg));
+        return super.unwrapResultOrThrow(client.postMessage(pwd, msg));
     }
 
     @Override
     public Message getMessage(String name, String mid, String pwd) {
-        return super.unwrapResultOrThrow(getClient().getInboxMessage(name, mid, pwd));
+        return super.unwrapResultOrThrow(client.getInboxMessage(name, mid, pwd));
     }
 
     @Override
     public List<String> getMessages(String name, String pwd, String query) {
-        return super.unwrapResultOrThrow(getClient().searchInbox(name, pwd, query));
+        return super.unwrapResultOrThrow(client.searchInbox(name, pwd, query));
     }
 
     @Override
     public void removeFromUserInbox(String name, String mid, String pwd) {
-        super.unwrapResultOrThrow(getClient().removeInboxMessage(name, mid, pwd));
+        super.unwrapResultOrThrow(client.removeInboxMessage(name, mid, pwd));
     }
 
     @Override
     public void deleteMessage(String name, String mid, String pwd) {
-        super.unwrapResultOrThrow(getClient().deleteMessage(name, mid, pwd));
+        super.unwrapResultOrThrow(client.deleteMessage(name, mid, pwd));
     }
 
     @Override
     public String internalDeleteMessage(String mid) {
-        return super.unwrapResultOrThrow(getClient().internalDeleteMessage(mid));
+        return super.unwrapResultOrThrow(client.internalDeleteMessage(mid));
     }
 }

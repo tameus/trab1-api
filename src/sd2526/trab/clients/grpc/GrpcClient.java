@@ -9,44 +9,43 @@ import io.grpc.ManagedChannelBuilder;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import sd2526.trab.api.java.Result;
-import sd2526.trab.api.java.Result.ErrorCode;;
+import sd2526.trab.api.java.Result.ErrorCode;
+import sd2526.trab.clients.AbstractClient;
 
-public class GrpcClient {
+public class GrpcClient extends AbstractClient {
 
-    final Logger logger;
     final private URI serverURI;
     final protected Channel channel;
 
     protected GrpcClient(URI serverURI, Logger logger) {
+        super(logger);
         this.serverURI = serverURI;
-        this.logger = logger;
 
         this.channel = ManagedChannelBuilder.forAddress(this.serverURI.getHost(), this.serverURI.getPort())
-                .usePlaintext().enableRetry().build();
+                .usePlaintext().build();
     }
 
+    @Override
+    protected boolean isRetryable(RuntimeException e) {
+        return e instanceof StatusRuntimeException sre &&
+               sre.getStatus().getCode() == Status.Code.UNAVAILABLE;
+    }
+
+    @Override
+    protected ErrorCode toErrorCode(RuntimeException e) {
+        if (e instanceof StatusRuntimeException sre)
+            return statusToErrorCode(sre.getStatus());
+        return ErrorCode.INTERNAL_ERROR;
+    }
+
+    //retornam valor
     protected <T> Result<T> processResponse(Supplier<T> func) {
-        try {
-            return Result.ok(func.get());
-        } catch (StatusRuntimeException sre) {
-            logger.info("Exception:" + sre.getMessage() );
-            return Result.error(statusToErrorCode(sre.getStatus()));
-        } catch (Exception x) {
-            x.printStackTrace();
-            return Result.error(ErrorCode.INTERNAL_ERROR);
-        }
+        return reTry(() -> Result.ok(func.get()));
     }
 
+    //void
     protected Result<Void> processResponse(Runnable proc) {
-        try {
-            proc.run();
-            return Result.ok();
-        } catch (StatusRuntimeException sre) {
-            return Result.error(statusToErrorCode(sre.getStatus()));
-        } catch (Exception x) {
-            x.printStackTrace();
-            return Result.error(ErrorCode.INTERNAL_ERROR);
-        }
+        return reTry(() -> { proc.run(); return Result.ok(); });
     }
 
     protected static ErrorCode statusToErrorCode(Status status) {
@@ -57,8 +56,8 @@ public class GrpcClient {
             case PERMISSION_DENIED -> ErrorCode.FORBIDDEN;
             case INVALID_ARGUMENT -> ErrorCode.BAD_REQUEST;
             case UNIMPLEMENTED -> ErrorCode.NOT_IMPLEMENTED;
+            case DEADLINE_EXCEEDED -> ErrorCode.TIMEOUT;
             default -> ErrorCode.INTERNAL_ERROR;
         };
     }
 }
-
