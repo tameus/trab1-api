@@ -13,7 +13,7 @@ public class RestUsersServer extends AbstractRestServer {
     }
 
     @Override
-    void registerResources(ResourceConfig config) {
+    public void registerResources(ResourceConfig config) {
         config.register(RestUsersResource.class);
     }
 

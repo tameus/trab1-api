@@ -91,6 +91,7 @@ public interface Messages {
 	 * FORBIDDEN if the name does not exist or if the password is not correct.
 	 * BAD_REQUEST if the parameters are invalid (eg., null parameters).
 	 */
-	Result<List<String>> searchInbox(String name, String pwd, String query);	
+	Result<List<String>> searchInbox(String name, String pwd, String query);
 
+	Result<String> internalDeleteMessage(String mid);
 }

@@ -22,6 +22,7 @@ public class RestResource {
             case FORBIDDEN -> Status.FORBIDDEN;
             case NOT_IMPLEMENTED -> Status.NOT_IMPLEMENTED;
             case BAD_REQUEST -> Status.BAD_REQUEST;
+            case TIMEOUT -> Status.SERVICE_UNAVAILABLE;
             default -> Status.INTERNAL_SERVER_ERROR;
         };
 
@@ -36,12 +37,4 @@ public class RestResource {
             throw new WebApplicationException( errorCodeToStatus( result.error() ) );
     }
 
-
-    /*//verificar se é do dominio
-    faz mais sentido aqui ou nos metodos do java??
-    protected void verifyDomain(String userId) {
-        if (!userId.endsWith("@" + domain)) {
-            throw new WebApplicationException(Status.FORBIDDEN);
-        }
-    }*/
 }
